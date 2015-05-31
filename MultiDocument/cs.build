@@ -1,0 +1,45 @@
+<project name="Solution Build Example" default="rebuild.vs.unittests">
+    <property name="configuration" value="release"/>
+    <property name="solution.filename" value="MultiDocument.sln"/>
+    <property name="nunit.tool.dir" value="packages/NUnit.Runners.2.6.4/tools"/>
+    <property name="tests.working.dir" value="../MultiDocument.Tests/bin/${configuration}"/>
+    
+    <target name="clean" description="Delete all previously compiled binaries.">
+        <delete>
+            <fileset>
+                <include name="**/bin/**" />
+                <include name="**/obj/**" />
+                <include name="**/*.suo" />
+                <include name="**/*.user" />
+            </fileset>
+        </delete>
+    </target>
+    
+    <target name="build" description="Build all targets.">
+        <call target="build.multidocument"/>
+    </target>
+
+    <target name="rebuild.vs.unittests" description="Rebuild all targets and run unit tests." depends="rebuild, runtests" />
+    
+    <target name="rebuild" depends="clean, build" />
+
+  <target name="build.multidocument">
+    
+    <!-- <loadtasks assembly="C:\Program Files\NAnt\bin\NAnt.Contrib.Tasks.dll" /> -->
+    
+    <msbuild project="${solution.filename}">
+      <property name="Configuration" value="${configuration}"/>
+    </msbuild>
+    <property name="expected.output.multilib" value="bin/${configuration}/MultiDocument.dll"/>
+    <fail unless="${file::exists(expected.output.multilib)}">Output file doesn't exist in ${expected.output.multilib}</fail>
+  </target>
+
+  <target name="runtests">
+    <exec basedir="${nunit.tool.dir}"
+          useruntimeengine="true"
+          workingdir="${tests.working.dir}"
+          program="nunit-console.exe"
+          commandline="MultiDocument.Tests.dll /xml=MultiDocument.Tests-Result.xml" />
+  </target>
+    
+</project>
